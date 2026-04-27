@@ -89,3 +89,45 @@ test('harness loads dark.js without throwing', () => {
   const env = makeEnv();
   expect(() => loadDark(env)).not.toThrow();
 });
+
+test('current() returns "system" when no value stored', () => {
+  const env = makeEnv();
+  const Dark = loadDark(env);
+  expect(Dark.current()).toBe('system');
+});
+
+test('current() returns "light" when stored', () => {
+  const env = makeEnv({ stored: 'light' });
+  const Dark = loadDark(env);
+  expect(Dark.current()).toBe('light');
+});
+
+test('current() returns "dark" when stored', () => {
+  const env = makeEnv({ stored: 'dark' });
+  const Dark = loadDark(env);
+  expect(Dark.current()).toBe('dark');
+});
+
+test('current() returns "system" for invalid stored value', () => {
+  const env = makeEnv({ stored: 'garbage' });
+  const Dark = loadDark(env);
+  expect(Dark.current()).toBe('system');
+});
+
+test('effective() returns "light" when system is light and pref is system', () => {
+  const env = makeEnv({ systemDark: false });
+  const Dark = loadDark(env);
+  expect(Dark.effective()).toBe('light');
+});
+
+test('effective() returns "dark" when system is dark and pref is system', () => {
+  const env = makeEnv({ systemDark: true });
+  const Dark = loadDark(env);
+  expect(Dark.effective()).toBe('dark');
+});
+
+test('effective() honors stored pref over system', () => {
+  const env = makeEnv({ stored: 'light', systemDark: true });
+  const Dark = loadDark(env);
+  expect(Dark.effective()).toBe('light');
+});
