@@ -193,3 +193,46 @@ test('cycle: light -> system', () => {
   Dark.cycle();
   expect(Dark.current()).toBe('system');
 });
+
+test('system change re-applies when pref is system', () => {
+  const env = makeEnv({ systemDark: false });
+  const Dark = loadDark(env);
+  expect(Dark.effective()).toBe('light');
+  env._events.length = 0;
+  env._flipSystem(true);
+  expect(env._root.hasAttribute('data-theme')).toBe(false);
+  const evt = env._events.find(e => e.type === 'dark:change');
+  expect(evt).toBeDefined();
+  expect(evt.detail.theme).toBe('system');
+  expect(evt.detail.effective).toBe('dark');
+});
+
+test('system change does NOT re-apply when pref is explicit', () => {
+  const env = makeEnv({ stored: 'light', systemDark: false });
+  const Dark = loadDark(env);
+  env._events.length = 0;
+  env._flipSystem(true);
+  const evt = env._events.find(e => e.type === 'dark:change');
+  expect(evt).toBeUndefined();
+});
+
+test('config({storage}) switches the storage key', () => {
+  const env = makeEnv();
+  env.localStorage.setItem('alt-key', 'dark');
+  const Dark = loadDark(env);
+  expect(Dark.current()).toBe('system');
+  Dark.config({ storage: 'alt-key' });
+  expect(Dark.current()).toBe('dark');
+});
+
+test('init applies stored value to <html> on load', () => {
+  const env = makeEnv({ stored: 'dark' });
+  loadDark(env);
+  expect(env._root.getAttribute('data-theme')).toBe('dark');
+});
+
+test('init does NOT set attribute when pref is system', () => {
+  const env = makeEnv({ systemDark: true });
+  loadDark(env);
+  expect(env._root.hasAttribute('data-theme')).toBe(false);
+});

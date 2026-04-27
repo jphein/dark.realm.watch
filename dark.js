@@ -54,10 +54,34 @@
     set(next);
   }
 
+  function config(opts) {
+    if (opts && typeof opts.storage === 'string') {
+      storageKey = opts.storage;
+      apply();
+    }
+  }
+
+  function init() {
+    if (!mediaQuery) mediaQuery = matchMedia('(prefers-color-scheme: dark)');
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', function () {
+        if (readPref() === 'system') apply();
+      });
+    }
+    apply();
+  }
+
   window.Dark = {
     current: readPref,
     effective: effective,
     set: set,
     cycle: cycle,
+    config: config,
   };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 })();
