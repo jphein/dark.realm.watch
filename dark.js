@@ -3,6 +3,7 @@
 // Three states: 'light', 'dark', 'system' (system = absence of stored value).
 
 (function () {
+  var VALID = ['light', 'dark', 'system'];
   var storageKey = 'drw-theme';
   var mediaQuery = null;
 
@@ -15,6 +16,13 @@
     }
   }
 
+  function writePref(v) {
+    try {
+      if (v === 'system') localStorage.removeItem(storageKey);
+      else localStorage.setItem(storageKey, v);
+    } catch (_) {}
+  }
+
   function effective() {
     var p = readPref();
     if (p !== 'system') return p;
@@ -22,8 +30,34 @@
     return mediaQuery.matches ? 'dark' : 'light';
   }
 
+  function apply() {
+    var p = readPref();
+    var root = document.documentElement;
+    if (p === 'system') root.removeAttribute('data-theme');
+    else root.setAttribute('data-theme', p);
+    document.dispatchEvent(new CustomEvent('dark:change', {
+      detail: { theme: p, effective: effective() },
+    }));
+  }
+
+  function set(v) {
+    if (VALID.indexOf(v) === -1) {
+      throw new Error('Dark.set: invalid value: ' + v);
+    }
+    writePref(v);
+    apply();
+  }
+
+  function cycle() {
+    var p = readPref();
+    var next = p === 'system' ? 'dark' : p === 'dark' ? 'light' : 'system';
+    set(next);
+  }
+
   window.Dark = {
     current: readPref,
     effective: effective,
+    set: set,
+    cycle: cycle,
   };
 })();

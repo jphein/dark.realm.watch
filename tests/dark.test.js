@@ -131,3 +131,65 @@ test('effective() honors stored pref over system', () => {
   const Dark = loadDark(env);
   expect(Dark.effective()).toBe('light');
 });
+
+test('set("dark") persists and applies attribute', () => {
+  const env = makeEnv();
+  const Dark = loadDark(env);
+  Dark.set('dark');
+  expect(Dark.current()).toBe('dark');
+  expect(env._root.getAttribute('data-theme')).toBe('dark');
+});
+
+test('set("light") persists and applies attribute', () => {
+  const env = makeEnv();
+  const Dark = loadDark(env);
+  Dark.set('light');
+  expect(Dark.current()).toBe('light');
+  expect(env._root.getAttribute('data-theme')).toBe('light');
+});
+
+test('set("system") removes the attribute and clears storage', () => {
+  const env = makeEnv({ stored: 'dark' });
+  const Dark = loadDark(env);
+  Dark.set('system');
+  expect(Dark.current()).toBe('system');
+  expect(env._root.hasAttribute('data-theme')).toBe(false);
+});
+
+test('set throws on invalid value', () => {
+  const env = makeEnv();
+  const Dark = loadDark(env);
+  expect(() => Dark.set('blue')).toThrow();
+});
+
+test('set dispatches dark:change with theme + effective', () => {
+  const env = makeEnv({ systemDark: false });
+  const Dark = loadDark(env);
+  env._events.length = 0;
+  Dark.set('dark');
+  const evt = env._events.find(e => e.type === 'dark:change');
+  expect(evt).toBeDefined();
+  expect(evt.detail.theme).toBe('dark');
+  expect(evt.detail.effective).toBe('dark');
+});
+
+test('cycle: system -> dark', () => {
+  const env = makeEnv();
+  const Dark = loadDark(env);
+  Dark.cycle();
+  expect(Dark.current()).toBe('dark');
+});
+
+test('cycle: dark -> light', () => {
+  const env = makeEnv({ stored: 'dark' });
+  const Dark = loadDark(env);
+  Dark.cycle();
+  expect(Dark.current()).toBe('light');
+});
+
+test('cycle: light -> system', () => {
+  const env = makeEnv({ stored: 'light' });
+  const Dark = loadDark(env);
+  Dark.cycle();
+  expect(Dark.current()).toBe('system');
+});
