@@ -86,6 +86,24 @@ rc=$?
 set -e
 [ "$rc" = "2" ] && ok "bogus exits 2" || fail "expected exit 2, got $rc"
 
+echo "test: watch streams 'dark' then 'light' from mocked gdbus monitor"
+cat > "$TMP/gdbus" <<'EOF'
+#!/usr/bin/env bash
+if [ "$1" = "monitor" ]; then
+  cat <<STREAM
+/org/freedesktop/portal/desktop: org.freedesktop.portal.Settings.SettingChanged ('org.freedesktop.appearance', 'color-scheme', <uint32 1>)
+/org/freedesktop/portal/desktop: org.freedesktop.portal.Settings.SettingChanged ('org.freedesktop.appearance', 'color-scheme', <uint32 2>)
+STREAM
+  exit 0
+else
+  exit 1
+fi
+EOF
+chmod +x "$TMP/gdbus"
+out=$(PATH="$SEALED_PATH" "$DARK" watch | head -2)
+expected=$'dark\nlight'
+[ "$out" = "$expected" ] && ok "watch dark,light" || fail "expected 'dark\\nlight', got '$out'"
+
 echo
 echo "PASS: $PASS   FAIL: $FAIL"
 [ "$FAIL" = "0" ] || exit 1
