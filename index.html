@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>dark.realm.watch — system-aware dark/light, as a drop-in</title>
+  <meta name="description" content="A drop-in include for system-aware dark/light theming. Web (CSS, JS, custom element) and a Linux CLI.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%230a0a14'/%3E%3Cpath d='M16 2 A14 14 0 0 1 16 30 Z' fill='%23f5f1e8'/%3E%3C/svg%3E">
+
+  <link rel="stylesheet" href="dark.css">
+
+  <script>(()=>{try{var s=localStorage.getItem('drw-theme');if(s==='dark'||s==='light')document.documentElement.setAttribute('data-theme',s)}catch(_){}})()</script>
+
+  <script src="dark.js"></script>
+  <script src="dark-toggle.js"></script>
+
+  <style>
+    :root {
+      --bg: #06060d;
+      --bg-elev: #0e0e1c;
+      --fg: #e8e6f0;
+      --fg-muted: #9c98ad;
+      --accent: #b89af0;
+      --accent-warm: #f0c98a;
+      --border: rgba(184, 154, 240, 0.18);
+    }
+    :root[data-theme="light"] {
+      --bg: #f4eee0;
+      --bg-elev: #ebe2cc;
+      --fg: #1a1410;
+      --fg-muted: #6d6656;
+      --accent: #6238c4;
+      --accent-warm: #b86a18;
+      --border: rgba(98, 56, 196, 0.18);
+    }
+    @media (prefers-color-scheme: light) {
+      :root:not([data-theme="dark"]) {
+        --bg: #f4eee0;
+        --bg-elev: #ebe2cc;
+        --fg: #1a1410;
+        --fg-muted: #6d6656;
+        --accent: #6238c4;
+        --accent-warm: #b86a18;
+        --border: rgba(98, 56, 196, 0.18);
+      }
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font: 16px/1.6 ui-serif, Georgia, "Iowan Old Style", serif;
+      background: var(--bg);
+      color: var(--fg);
+      transition: background 0.4s, color 0.4s;
+      min-height: 100vh;
+    }
+    main { max-width: 64ch; margin: 0 auto; padding: 3rem 1.5rem 4rem; }
+
+    .top {
+      display: flex; justify-content: space-between; align-items: center;
+      max-width: 64ch; margin: 0 auto; padding: 1.5rem 1.5rem 0;
+      color: var(--fg-muted); font-family: ui-monospace, "JetBrains Mono", monospace; font-size: 0.85rem;
+    }
+    .top a { color: inherit; text-decoration: none; border-bottom: 1px dotted currentColor; }
+
+    h1 {
+      font-family: ui-serif, Georgia, serif;
+      font-size: clamp(2rem, 5vw, 3rem);
+      letter-spacing: -0.01em;
+      margin: 0 0 0.25rem;
+    }
+    h1 .accent { color: var(--accent); }
+    .tagline { color: var(--fg-muted); margin: 0 0 2rem; font-style: italic; }
+
+    .hero {
+      display: flex; justify-content: center; align-items: center;
+      padding: 1rem 0 2rem;
+    }
+    .hero svg { width: clamp(120px, 28vw, 200px); height: auto; }
+
+    .pill {
+      display: inline-block; padding: 0.2em 0.7em; border-radius: 999px;
+      border: 1px solid var(--border);
+      font-family: ui-monospace, monospace; font-size: 0.85rem; color: var(--fg-muted);
+    }
+
+    h2 {
+      font-size: 1.25rem; margin: 2.5rem 0 0.5rem;
+      color: var(--accent);
+      letter-spacing: 0.02em;
+    }
+
+    pre {
+      background: var(--bg-elev);
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 0.9rem 1rem; overflow-x: auto;
+      font: 0.85rem/1.5 ui-monospace, "JetBrains Mono", monospace;
+      position: relative;
+    }
+    pre code { color: var(--fg); }
+    .copy {
+      position: absolute; top: 0.4rem; right: 0.4rem;
+      font: inherit; font-size: 0.75rem; color: var(--fg-muted);
+      background: transparent; border: 1px solid var(--border); border-radius: 4px;
+      padding: 0.15em 0.5em; cursor: pointer;
+    }
+    .copy:hover { color: var(--fg); border-color: var(--fg-muted); }
+
+    .toggles-row {
+      display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap;
+      padding: 1rem; border: 1px dashed var(--border); border-radius: 6px;
+      margin: 1rem 0;
+    }
+    .toggles-row label {
+      display: flex; flex-direction: column; gap: 0.4rem;
+      font-size: 0.85rem; color: var(--fg-muted);
+    }
+
+    code.inline {
+      background: var(--bg-elev); padding: 0.05em 0.4em; border-radius: 3px;
+      font-family: ui-monospace, monospace; font-size: 0.9em;
+    }
+
+    footer {
+      margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--border);
+      color: var(--fg-muted); font-size: 0.85rem;
+      display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;
+      font-family: ui-monospace, monospace;
+    }
+    footer a { color: inherit; text-decoration: none; border-bottom: 1px dotted currentColor; }
+  </style>
+</head>
+<body>
+
+<div class="top">
+  <span>dark.realm.watch</span>
+  <dark-toggle></dark-toggle>
+</div>
+
+<main>
+  <h1>dark<span class="accent">.</span>realm<span class="accent">.</span>watch</h1>
+  <p class="tagline">A drop-in include for system-aware dark/light theming. Schema-agnostic. No build step.</p>
+
+  <div class="hero">
+    <svg viewBox="0 0 200 200" aria-hidden="true">
+      <defs>
+        <radialGradient id="g-light" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#f6e6b0"/>
+          <stop offset="100%" stop-color="#d9b04a"/>
+        </radialGradient>
+        <radialGradient id="g-dark" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#1a1a2e"/>
+          <stop offset="100%" stop-color="#08080f"/>
+        </radialGradient>
+      </defs>
+      <circle cx="100" cy="100" r="90" fill="url(#g-dark)" stroke="currentColor" stroke-opacity="0.3"/>
+      <path d="M 100 10 A 90 90 0 0 1 100 190 Z" fill="url(#g-light)"/>
+      <circle cx="62" cy="80" r="3" fill="#fff" opacity="0.5"/>
+      <circle cx="78" cy="140" r="2" fill="#fff" opacity="0.4"/>
+      <circle cx="50" cy="120" r="1.5" fill="#fff" opacity="0.6"/>
+    </svg>
+  </div>
+
+  <div class="toggles-row">
+    <label>icon (default)
+      <dark-toggle></dark-toggle>
+    </label>
+    <label>pills
+      <dark-toggle variant="pills"></dark-toggle>
+    </label>
+    <label>system reads
+      <span class="pill" id="sys-indicator">…</span>
+    </label>
+    <label>effective
+      <span class="pill" id="eff-indicator">…</span>
+    </label>
+  </div>
+
+  <h2>Tier 1 · CSS only (no JS)</h2>
+  <p>Drop in <code class="inline">dark.css</code>; define your variables in matching selectors.</p>
+<pre><button class="copy" data-copy="t1">copy</button><code id="t1">&lt;link rel="stylesheet" href="https://dark.realm.watch/dark.css"&gt;
+&lt;style&gt;
+  :root { --bg: #0a0a0c; --fg: #eee; }
+  :root[data-theme="light"] { --bg: #f5f5f7; --fg: #111; }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) { --bg: #f5f5f7; --fg: #111; }
+  }
+  body { background: var(--bg); color: var(--fg); }
+&lt;/style&gt;</code></pre>
+
+  <h2>Tier 2 · add the engine</h2>
+  <p>Inline the head snippet to kill FOUC, then load <code class="inline">dark.js</code>.</p>
+<pre><button class="copy" data-copy="t2">copy</button><code id="t2">&lt;script&gt;(()=&gt;{try{var s=localStorage.getItem('drw-theme');if(s==='dark'||s==='light')document.documentElement.setAttribute('data-theme',s)}catch(_){}})()&lt;/script&gt;
+&lt;link rel="stylesheet" href="https://dark.realm.watch/dark.css"&gt;
+&lt;script src="https://dark.realm.watch/dark.js"&gt;&lt;/script&gt;
+&lt;button onclick="Dark.cycle()"&gt;cycle&lt;/button&gt;</code></pre>
+
+  <h2>Tier 3 · default toggle</h2>
+<pre><button class="copy" data-copy="t3">copy</button><code id="t3">&lt;script src="https://dark.realm.watch/dark-toggle.js"&gt;&lt;/script&gt;
+&lt;dark-toggle&gt;&lt;/dark-toggle&gt;
+&lt;dark-toggle variant="pills"&gt;&lt;/dark-toggle&gt;</code></pre>
+
+  <h2>Listen from your own code</h2>
+<pre><button class="copy" data-copy="t4">copy</button><code id="t4">document.addEventListener('dark:change', e =&gt; {
+  console.log(e.detail.theme, e.detail.effective);
+});</code></pre>
+
+  <h2>Linux · the <code class="inline">dark</code> CLI</h2>
+  <p>Reads the cross-desktop XDG portal, falls back to GNOME's gsettings.</p>
+<pre><button class="copy" data-copy="t5">copy</button><code id="t5">$ dark
+dark
+$ dark watch
+dark
+light
+dark
+^C</code></pre>
+
+  <p>Install:</p>
+<pre><button class="copy" data-copy="t6">copy</button><code id="t6">git clone https://github.com/jphein/dark.realm.watch
+ln -s "$PWD/dark.realm.watch/linux/dark" ~/.local/bin/dark</code></pre>
+
+  <footer>
+    <span>void · MIT · <a href="https://github.com/jphein/dark.realm.watch">github</a></span>
+    <span id="version"></span>
+  </footer>
+</main>
+
+<script>
+  function refreshIndicators() {
+    document.getElementById('sys-indicator').textContent =
+      window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.getElementById('eff-indicator').textContent = Dark.effective();
+  }
+  document.addEventListener('dark:change', refreshIndicators);
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', refreshIndicators);
+  refreshIndicators();
+
+  document.querySelectorAll('.copy').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var id = btn.dataset.copy;
+      var text = document.getElementById(id).textContent;
+      navigator.clipboard.writeText(text).then(function () {
+        var orig = btn.textContent;
+        btn.textContent = 'copied';
+        setTimeout(function () { btn.textContent = orig; }, 1200);
+      });
+    });
+  });
+</script>
+
+</body>
+</html>
