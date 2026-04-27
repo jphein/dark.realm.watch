@@ -1,0 +1,12 @@
+{
+  "name": "dark.realm.watch",
+  "description": "system-aware dark/light theming for the realm",
+  "version": "Jagged Vertex \u00b7 50cbb2d",
+  "hash": "50cbb2d",
+  "branch": "main",
+  "dirty": false,
+  "built": "2026-04-27T02:47:26Z",
+  "realm": "void",
+  "repo": "https://github.com/jphein/dark.realm.watch",
+  "commit_url": "https://github.com/jphein/dark.realm.watch/commit/50cbb2d"
+}
