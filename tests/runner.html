@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>dark.realm.watch · runner</title>
+  <link rel="stylesheet" href="../dark.css">
+  <script>
+    (function () {
+      try {
+        var s = localStorage.getItem('drw-theme');
+        if (s === 'dark' || s === 'light') document.documentElement.setAttribute('data-theme', s);
+      } catch (_) {}
+    })();
+  </script>
+  <script src="../dark.js"></script>
+  <script src="../dark-toggle.js"></script>
+  <style>
+    :root { --bg: #0e0e10; --fg: #e8e8ea; --muted: #888; --accent: #8c6bff; }
+    :root[data-theme="light"] { --bg: #fafaf9; --fg: #1a1a1c; --muted: #555; --accent: #5238c4; }
+    @media (prefers-color-scheme: light) {
+      :root:not([data-theme="dark"]) { --bg: #fafaf9; --fg: #1a1a1c; --muted: #555; --accent: #5238c4; }
+    }
+    body { font: 16px/1.5 system-ui, sans-serif; background: var(--bg); color: var(--fg); padding: 2rem; max-width: 56ch; margin: 0 auto; }
+    h1 { font-size: 1.5rem; }
+    .row { display: flex; align-items: center; gap: 1rem; margin: 1rem 0; }
+    code { background: rgba(127,127,127,0.12); padding: 0 0.3em; border-radius: 3px; }
+    .pass { color: #2ea44f; }
+    .fail { color: #d1242f; }
+    .check { font-family: ui-monospace, monospace; font-size: 0.9rem; margin-right: 0.5rem; }
+    .accent { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <h1>dark.realm.watch · runner <dark-toggle></dark-toggle></h1>
+  <p>Click the toggle, change your OS theme, reload — page should never flash.</p>
+
+  <div class="row">
+    <strong>Pills:</strong> <dark-toggle variant="pills"></dark-toggle>
+  </div>
+
+  <div class="row">
+    <strong>State:</strong>
+    <code id="current"></code> · effective <code id="effective"></code>
+  </div>
+
+  <h2>Smoke checks</h2>
+  <ol id="checks"></ol>
+
+  <script>
+    function refresh() {
+      document.getElementById('current').textContent = Dark.current();
+      document.getElementById('effective').textContent = Dark.effective();
+    }
+    document.addEventListener('dark:change', refresh);
+    refresh();
+
+    var checks = [
+      ['Dark.current() returns one of the three values',
+        function () { return ['light', 'dark', 'system'].indexOf(Dark.current()) !== -1; }],
+      ['Dark.effective() returns light or dark',
+        function () { return ['light', 'dark'].indexOf(Dark.effective()) !== -1; }],
+      ['data-theme attr matches current() unless system',
+        function () {
+          var c = Dark.current();
+          var a = document.documentElement.getAttribute('data-theme');
+          return c === 'system' ? a === null : a === c;
+        }],
+      ['<dark-toggle> renders a button',
+        function () {
+          var t = document.querySelector('dark-toggle');
+          return !!(t && t.shadowRoot && t.shadowRoot.querySelector('button'));
+        }],
+      ['<dark-toggle variant="pills"> renders three buttons',
+        function () {
+          var t = document.querySelector('dark-toggle[variant="pills"]');
+          return !!(t && t.shadowRoot && t.shadowRoot.querySelectorAll('button').length === 3);
+        }],
+    ];
+    var ol = document.getElementById('checks');
+    checks.forEach(function (entry) {
+      var label = entry[0];
+      var fn = entry[1];
+      var li = document.createElement('li');
+      var ok = false;
+      try { ok = fn(); } catch (e) { ok = false; }
+      var span = document.createElement('span');
+      span.className = 'check ' + (ok ? 'pass' : 'fail');
+      span.textContent = ok ? 'PASS' : 'FAIL';
+      li.appendChild(span);
+      li.appendChild(document.createTextNode(label));
+      ol.appendChild(li);
+    });
+  </script>
+</body>
+</html>
