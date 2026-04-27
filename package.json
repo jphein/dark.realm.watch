@@ -1,0 +1,10 @@
+{
+  "name": "dark.realm.watch",
+  "version": "0.1.0",
+  "description": "System-aware dark/light theming as a drop-in include",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "test": "bun test"
+  }
+}
