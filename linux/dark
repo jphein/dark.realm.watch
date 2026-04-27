@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+# dark — print system color scheme; optionally watch for changes.
+#
+# Reads org.freedesktop.appearance / color-scheme via the XDG Desktop Portal,
+# falling back to GNOME's gsettings. Output: "dark" | "light" | "unknown".
+set -euo pipefail
+
+read_via_portal() {
+  local out
+  out=$(gdbus call --session \
+    --dest org.freedesktop.portal.Desktop \
+    --object-path /org/freedesktop/portal/desktop \
+    --method org.freedesktop.portal.Settings.Read \
+    org.freedesktop.appearance color-scheme 2>/dev/null) || return 1
+  case "$out" in
+    *"uint32 1"*) echo dark ;;
+    *"uint32 2"*) echo light ;;
+    *"uint32 0"*) echo unknown ;;
+    *) return 1 ;;
+  esac
+}
+
+read_via_gsettings() {
+  local v
+  v=$(gsettings get org.gnome.desktop.interface color-scheme 2>/dev/null) || return 1
+  case "$v" in
+    *prefer-dark*) echo dark ;;
+    *prefer-light*) echo light ;;
+    *) echo unknown ;;
+  esac
+}
+
+read_theme() {
+  if read_via_portal; then return 0; fi
+  if read_via_gsettings; then return 0; fi
+  echo unknown
+  return 1
+}
+
+watch_theme() {
+  exec gdbus monitor --session \
+    --dest org.freedesktop.portal.Desktop \
+    --object-path /org/freedesktop/portal/desktop |
+  while IFS= read -r line; do
+    case "$line" in
+      *SettingChanged*org.freedesktop.appearance*color-scheme*)
+        case "$line" in
+          *"uint32 1"*) echo dark ;;
+          *"uint32 2"*) echo light ;;
+          *"uint32 0"*) echo unknown ;;
+        esac
+        ;;
+    esac
+  done
+}
+
+usage() {
+  cat <<'EOF'
+dark — system-aware light/dark indicator
+
+Usage:
+  dark              Print "dark", "light", or "unknown" and exit
+  dark watch        Stream lines on each system flip; runs until killed
+  dark --help       Show this help
+
+Reads the cross-desktop standard org.freedesktop.appearance/color-scheme via
+the XDG Desktop Portal, falling back to GNOME's gsettings.
+EOF
+}
+
+case "${1:-}" in
+  ""|--current) read_theme ;;
+  watch) watch_theme ;;
+  -h|--help|help) usage ;;
+  *) echo "dark: unknown command: $1" >&2; usage >&2; exit 2 ;;
+esac
