@@ -1,12 +1,12 @@
 {
   "name": "dark.realm.watch",
   "description": "system-aware dark/light theming for the realm",
-  "version": "Absent Vanishment \u00b7 a2720d6",
-  "hash": "a2720d6",
+  "version": "Fading Chasm \u00b7 b4025be",
+  "hash": "b4025be",
   "branch": "main",
   "dirty": false,
-  "built": "2026-05-11T02:47:48Z",
+  "built": "2026-05-11T03:07:11Z",
   "realm": "void",
   "repo": "https://github.com/jphein/dark.realm.watch",
-  "commit_url": "https://github.com/jphein/dark.realm.watch/commit/a2720d6"
+  "commit_url": "https://github.com/jphein/dark.realm.watch/commit/b4025be"
 }
