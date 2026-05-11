@@ -1,12 +1,12 @@
 {
   "name": "dark.realm.watch",
   "description": "system-aware dark/light theming for the realm",
-  "version": "Jagged Vertex \u00b7 50cbb2d",
-  "hash": "50cbb2d",
+  "version": "Absent Vanishment \u00b7 a2720d6",
+  "hash": "a2720d6",
   "branch": "main",
   "dirty": false,
-  "built": "2026-04-27T02:47:26Z",
+  "built": "2026-05-11T02:47:48Z",
   "realm": "void",
   "repo": "https://github.com/jphein/dark.realm.watch",
-  "commit_url": "https://github.com/jphein/dark.realm.watch/commit/50cbb2d"
+  "commit_url": "https://github.com/jphein/dark.realm.watch/commit/a2720d6"
 }
